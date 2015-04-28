@@ -93,14 +93,18 @@ public:
 	{
 		if(!this->isPaused())
 		{
+			std::string rgbe(image->encoding);
+			std::string depthe(depth->encoding);
+			ROS_INFO("\n%s\n",rgbe.c_str());
+			ROS_INFO("Dhpth ENOCODING: %s" , depthe.c_str());
 			if(!(image->encoding.compare(sensor_msgs::image_encodings::MONO8) ==0 ||
 				 image->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
 				 image->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
 				 image->encoding.compare(sensor_msgs::image_encodings::RGB8) == 0) ||
-			   !(depth->encoding.compare(sensor_msgs::image_encodings::TYPE_16UC1)==0 ||
+			   !(depth->encoding.compare(sensor_msgs::image_encodings::MONO16)==0 ||
 				 depth->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1)==0))
 			{
-				ROS_ERROR("Input type must be image=mono8,mono16,rgb8,bgr8 (mono8 recommended) and image_depth=16UC1");
+				ROS_ERROR("RGBD ODOM Input type must be image=mono8,mono16,rgb8,bgr8 (mono8 recommended) and image_depth=16UC1");
 				return;
 			}
 			else if(depth->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1)==0)
@@ -141,8 +145,8 @@ public:
 				float fy = model.fy();
 				float cx = model.cx();
 				float cy = model.cy();
-				cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "mono8");
-				cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth);
+				cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "bgr8");
+				cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth, "mono16");
 
 				rtabmap::SensorData data(
 						ptrImage->image,
