@@ -322,7 +322,7 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				img.encoding = sensor_msgs::image_encodings::TYPE_16UC1;
+				img.encoding = sensor_msgs::image_encodings::MONO16;
 			}
 			img.image = data.depth();
 			sensor_msgs::ImagePtr imageRosMsg = img.toImageMsg();

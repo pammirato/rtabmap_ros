@@ -120,7 +120,7 @@ private:
 			if(publish16u)
 			{
 				// convert to ROS sensor_msg::Image
-				cv_bridge::CvImage cvDepth(disparityMsg->header, sensor_msgs::image_encodings::TYPE_16UC1, depth16u);
+				cv_bridge::CvImage cvDepth(disparityMsg->header, sensor_msgs::image_encodings::MONO16, depth16u);
 				sensor_msgs::Image depthMsg;
 				cvDepth.toImageMsg(depthMsg);
 

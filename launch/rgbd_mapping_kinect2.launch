@@ -13,8 +13,8 @@
            hd: rgb_rect / depth_highres
            ir: ir_rect / depth_rect
    -->
-   <arg name="rgb_prefix" default="rgb_lowres" />
-   <arg name="depth_prefix" default="depth_lowres" />
+   <arg name="rgb_prefix" default="rgb_rect" />
+   <arg name="depth_prefix" default="depth_highres" />
   
   <!-- Choose visualization -->
   <arg name="rviz" default="false" />

@@ -159,7 +159,7 @@ private:
 			image->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
 			image->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
 			image->encoding.compare(sensor_msgs::image_encodings::RGB8) == 0) &&
-			(imageDepth->encoding.compare(sensor_msgs::image_encodings::TYPE_16UC1)!=0 ||
+			(imageDepth->encoding.compare(sensor_msgs::image_encodings::MONO16)!=0 ||
 			 imageDepth->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1)!=0))
 		{
 			ROS_ERROR("XYZRGB 1 Input type must be image=mono8,mono16,rgb8,bgr8 and image_depth=32FC1,16UC1");
@@ -169,7 +169,7 @@ private:
 		if(cloudPub_.getNumSubscribers())
 		{
 			cv_bridge::CvImageConstPtr imagePtr = cv_bridge::toCvShare(image, "bgr8");
-			cv_bridge::CvImageConstPtr imageDepthPtr = cv_bridge::toCvShare(imageDepth);
+			cv_bridge::CvImageConstPtr imageDepthPtr = cv_bridge::toCvShare(imageDepth,"mono16");
 
 			image_geometry::PinholeCameraModel model;
 			model.fromCameraInfo(*cameraInfo);

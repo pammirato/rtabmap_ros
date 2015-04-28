@@ -685,11 +685,13 @@ void CoreWrapper::commonDepthCallback(
 		const sensor_msgs::CameraInfoConstPtr& cameraInfoMsg,
 		const sensor_msgs::LaserScanConstPtr& scanMsg)
 {
+
+	ROS_INFO("PHILIP");
 	if(!(imageMsg->encoding.compare(sensor_msgs::image_encodings::MONO8) ==0 ||
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::RGB8) == 0) ||
-		!(depthMsg->encoding.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0 ||
+		!(depthMsg->encoding.compare(sensor_msgs::image_encodings::MONO16) == 0 ||
 		 depthMsg->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1) == 0))
 	{
 		ROS_ERROR("Input type must be image=mono8,mono16,rgb8,bgr8 and image_depth=32FC1,16UC1");
@@ -730,7 +732,7 @@ void CoreWrapper::commonDepthCallback(
 	{
 		ptrImage = cv_bridge::toCvShare(imageMsg, "bgr8");
 	}
-	cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depthMsg);
+	cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depthMsg,"mono16");
 
 	image_geometry::PinholeCameraModel model;
 	model.fromCameraInfo(*cameraInfoMsg);
