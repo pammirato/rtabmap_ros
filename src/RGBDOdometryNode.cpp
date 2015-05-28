@@ -101,7 +101,7 @@ public:
 				 image->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
 				 image->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
 				 image->encoding.compare(sensor_msgs::image_encodings::RGB8) == 0) ||
-			   !(depth->encoding.compare(sensor_msgs::image_encodings::MONO16)==0 ||
+			   !(depth->encoding.compare(sensor_msgs::image_encodings::TYPE_16UC1)==0 ||
 				 depth->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1)==0))
 			{
 				ROS_ERROR("RGBD ODOM Input type must be image=mono8,mono16,rgb8,bgr8 (mono8 recommended) and image_depth=16UC1");
@@ -146,7 +146,7 @@ public:
 				float cx = model.cx();
 				float cy = model.cy();
 				cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "bgr8");
-				cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth, "mono16");
+				cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth);
 
 				rtabmap::SensorData data(
 						ptrImage->image,

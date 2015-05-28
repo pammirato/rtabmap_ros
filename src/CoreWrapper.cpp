@@ -123,6 +123,7 @@ CoreWrapper::CoreWrapper(bool deleteDbOnStart) :
 	ros::NodeHandle nh;
 	ros::NodeHandle pnh("~");
 
+
 	bool subscribeLaserScan = false;
 	bool subscribeDepth = true;
 	bool subscribeStereo = false;
@@ -183,7 +184,6 @@ CoreWrapper::CoreWrapper(bool deleteDbOnStart) :
 	pnh.param("map_filter_radius", mapFilterRadius_, mapFilterRadius_);
 	pnh.param("map_filter_angle", mapFilterAngle_, mapFilterAngle_);
 	pnh.param("map_cache_cleanup", mapCacheCleanup_, mapCacheCleanup_);
-
 	ROS_INFO("rtabmap: frame_id = %s", frameId_.c_str());
 	ROS_INFO("rtabmap: map_frame_id = %s", mapFrameId_.c_str());
 	ROS_INFO("rtabmap: queue_size = %d", queueSize);
@@ -589,16 +589,19 @@ bool CoreWrapper::commonOdomUpdate(const nav_msgs::OdometryConstPtr & odomMsg)
 		}
 
 		// Throttle
-		if(rate_>0.0f)
+    //PHIL
+		if(false)//(rate_>0.0f)
 		{
 			if(ros::Time::now() - time_ < ros::Duration(1.0f/rate_))
 			{
+        ROS_ERROR("FALSE 1");
 				return false;
 			}
 		}
 		time_ = ros::Time::now();
 		return true;
 	}
+  ROS_ERROR("FALSE 2");
 	return false;
 }
 
@@ -660,20 +663,34 @@ Transform CoreWrapper::getLocalTransform(const std::string & sensorFrameId, cons
 	{
 		if(waitForTransform_)
 		{
+      ROS_INFO("wait");
 			if(!tfListener_.waitForTransform(frameId_, sensorFrameId, stamp, ros::Duration(1)))
 			{
-				ROS_WARN("Could not get transform from %s to %s after 1 second!", frameId_.c_str(), sensorFrameId.c_str());
+				ROS_ERROR("Could not get transform from %s to %s after 1 second!", frameId_.c_str(), sensorFrameId.c_str());
 				return localTransform;
 			}
 		}
-
+    ROS_INFO("HERS !");
+    ROS_INFO("FRAME ID: %s    FID: %s",sensorFrameId.c_str(), frameId_.c_str());
 		tf::StampedTransform tmp;
-		tfListener_.lookupTransform(frameId_, sensorFrameId, stamp, tmp);
+    std::string philID = std::string("kinect2_rgb_optical_frame");
+    std::string badID = std::string("camera_depth_frame");
+
+    if(sensorFrameId.compare(badID) == 0){
+      ROS_INFO("FIX BAD ID");
+		  tfListener_.lookupTransform(frameId_, philID, stamp, tmp);
+    }
+    else{
+		  tfListener_.lookupTransform(frameId_, sensorFrameId, stamp, tmp);
+    }		
+
+//tfListener_.lookupTransform(frameId_, "kinect2_rgb_optical_frame", stamp, tmp);
+    ROS_INFO("HERS @");
 		localTransform = rtabmap_ros::transformFromTF(tmp);
 	}
 	catch(tf::TransformException & ex)
 	{
-		ROS_WARN("%s",ex.what());
+		ROS_ERROR("%s",ex.what());
 	}
 	return localTransform;
 }
@@ -691,7 +708,7 @@ void CoreWrapper::commonDepthCallback(
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::RGB8) == 0) ||
-		!(depthMsg->encoding.compare(sensor_msgs::image_encodings::MONO16) == 0 ||
+		!(depthMsg->encoding.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0 ||
 		 depthMsg->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1) == 0))
 	{
 		ROS_ERROR("Input type must be image=mono8,mono16,rgb8,bgr8 and image_depth=32FC1,16UC1");
@@ -701,15 +718,21 @@ void CoreWrapper::commonDepthCallback(
 	Transform localTransform = getLocalTransform(depthMsg->header.frame_id, depthMsg->header.stamp);
 	if(localTransform.isNull())
 	{
+    ROS_ERROR("local transform null");
 		return;
 	}
 
 	cv::Mat scan;
 	if(scanMsg.get() != 0)
 	{
+    //std::string philID = std::string("kinect2_rgb_optical_frame");
+
+//    scanMsg->header.frame_id = "kinect2_rgb_optical_frame";
 		// make sure the frame of the laser is updated too
 		if(getLocalTransform(scanMsg->header.frame_id, scanMsg->header.stamp).isNull())
+		//if(getLocalTransform(philID, scanMsg->header.stamp).isNull())
 		{
+      ROS_ERROR("scan transfrom null: ID %s ", scanMsg->header.frame_id.c_str());
 			return;
 		}
 
@@ -732,7 +755,7 @@ void CoreWrapper::commonDepthCallback(
 	{
 		ptrImage = cv_bridge::toCvShare(imageMsg, "bgr8");
 	}
-	cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depthMsg,"mono16");
+	cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depthMsg);
 
 	image_geometry::PinholeCameraModel model;
 	model.fromCameraInfo(*cameraInfoMsg);
@@ -772,7 +795,7 @@ void CoreWrapper::commonStereoCallback(
 		leftImageMsg->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
 		leftImageMsg->encoding.compare(sensor_msgs::image_encodings::RGB8) == 0) ||
 		!(rightImageMsg->encoding.compare(sensor_msgs::image_encodings::MONO8) == 0 ||
-		rightImageMsg->encoding.compare(sensor_msgs::image_encodings::MONO16) == 0 ||
+		rightImageMsg->encoding.compare(sensor_msgs::image_encodings::TYPE_16UC1) == 0 ||
 		rightImageMsg->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
 		rightImageMsg->encoding.compare(sensor_msgs::image_encodings::RGB8) == 0))
 	{
@@ -864,6 +887,7 @@ void CoreWrapper::depthScanCallback(
 {
 	if(!commonOdomUpdate(odomMsg))
 	{
+    ROS_ERROR("NO COMMON ODOOM UPDATE!!!!");
 		return;
 	}
 	commonDepthCallback(odomMsg->header.frame_id, imageMsg, depthMsg, cameraInfoMsg, scanMsg);
@@ -967,9 +991,11 @@ void CoreWrapper::process(
 		const Transform & localTransform,
 		const cv::Mat & scan)
 {
+  ROS_INFO("Processing...");
 	UTimer timer;
 	if(rtabmap_.isIDsGenerated() || id > 0)
 	{
+    ROS_INFO("Processing2...");
 		double timeRtabmap = 0.0;
 		cv::Mat imageB;
 		if(!depthOrRightImage.empty())
@@ -1023,6 +1049,7 @@ void CoreWrapper::process(
 
 		if(rtabmap_.process(data))
 		{
+      ROS_INFO("Processingdata...");
 			timeRtabmap = timer.ticks();
 			mapToOdomMutex_.lock();
 			rtabmap_ros::transformToTF(rtabmap_.getMapCorrection(), mapToOdom_);
@@ -2670,7 +2697,7 @@ void CoreWrapper::setupCallbacks(
 				depthScanTFSync_ = new message_filters::Synchronizer<MyDepthScanTFSyncPolicy>(MyDepthScanTFSyncPolicy(queueSize), imageSub_, imageDepthSub_, cameraInfoSub_, scanSub_);
 				depthScanTFSync_->registerCallback(boost::bind(&CoreWrapper::depthScanTFCallback, this, _1, _2, _3, _4));
 
-				ROS_INFO("\n%s subscribed to:\n   %s,\n   %s,\n   %s,\n   %s",
+				ROS_INFO("\n%s CORE subscribed to:\n   %s,\n   %s,\n   %s,\n   %s",
 						ros::this_node::getName().c_str(),
 						imageSub_.getTopic().c_str(),
 						imageDepthSub_.getTopic().c_str(),
@@ -2682,7 +2709,7 @@ void CoreWrapper::setupCallbacks(
 				depthTFSync_ = new message_filters::Synchronizer<MyDepthTFSyncPolicy>(MyDepthTFSyncPolicy(queueSize), imageSub_, imageDepthSub_, cameraInfoSub_);
 				depthTFSync_->registerCallback(boost::bind(&CoreWrapper::depthTFCallback, this, _1, _2, _3));
 
-				ROS_INFO("\n%s subscribed to:\n   %s,\n   %s,\n   %s",
+				ROS_INFO("\n%s COREsubscribed to:\n   %s,\n   %s,\n   %s",
 						ros::this_node::getName().c_str(),
 						imageSub_.getTopic().c_str(),
 						imageDepthSub_.getTopic().c_str(),

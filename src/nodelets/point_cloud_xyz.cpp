@@ -135,7 +135,7 @@ private:
 			  const sensor_msgs::ImageConstPtr& depth,
 			  const sensor_msgs::CameraInfoConstPtr& cameraInfo)
 	{
-		if(depth->encoding.compare(sensor_msgs::image_encodings::MONO16)!=0 &&
+		if(depth->encoding.compare(sensor_msgs::image_encodings::TYPE_16UC1)!=0 &&
 		   depth->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1)!=0)
 		{
 			ROS_ERROR("Input type depth=32FC1,16UC1");
@@ -144,7 +144,7 @@ private:
 
 		if(cloudPub_.getNumSubscribers())
 		{
-			cv_bridge::CvImageConstPtr imageDepthPtr = cv_bridge::toCvShare(depth,"mono16");
+			cv_bridge::CvImageConstPtr imageDepthPtr = cv_bridge::toCvShare(depth);
 
 			image_geometry::PinholeCameraModel model;
 			model.fromCameraInfo(*cameraInfo);
