@@ -35,8 +35,8 @@
    <arg name="strategy" default="0" />
    <arg name="feature" default="6" />
    <arg name="nn" default="3" />
-   <arg name="max_depth" default="4.0" />
-   <arg name="min_inliers" default="20" />
+   <arg name="max_depth" default="8.0" />
+   <arg name="min_inliers" default="4" />
    <arg name="inlier_distance" default="0.02" />
    <arg name="local_map" default="1000" />
    <arg name="gftt_max_corners" default="500" />
