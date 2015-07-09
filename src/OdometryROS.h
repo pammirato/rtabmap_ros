@@ -36,8 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <std_srvs/Empty.h>
 #include <std_msgs/Header.h>
+#include <nav_msgs/Odometry.h>
+
 
 #include <rtabmap_ros/ResetPose.h>
+#include <rtabmap_ros/GetOdom.h>
 #include <rtabmap/core/SensorData.h>
 #include <rtabmap/core/Parameters.h>
 
@@ -60,6 +63,7 @@ public:
 	bool resetToPose(rtabmap_ros::ResetPose::Request&, rtabmap_ros::ResetPose::Response&);
 	bool pause(std_srvs::Empty::Request&, std_srvs::Empty::Response&);
 	bool resume(std_srvs::Empty::Request&, std_srvs::Empty::Response&);
+  bool get_odom(rtabmap_ros::GetOdom::Request&,rtabmap_ros::GetOdom::Response&);
 
 	const std::string & frameId() const {return frameId_;}
 	const std::string & odomFrameId() const {return odomFrameId_;}
@@ -84,12 +88,19 @@ private:
 	ros::Publisher odomInfoPub_;
 	ros::Publisher odomLocalMap_;
 	ros::Publisher odomLastFrame_;
-	ros::ServiceServer resetSrv_;
+	
+  ros::ServiceServer resetSrv_;
 	ros::ServiceServer resetToPoseSrv_;
 	ros::ServiceServer pauseSrv_;
 	ros::ServiceServer resumeSrv_;
+  ros::ServiceServer get_odomSrv_;
+
 	tf::TransformBroadcaster tfBroadcaster_;
 	tf::TransformListener tfListener_;
+
+
+  nav_msgs::Odometry cur_odom;//holds the last published odom message
+
 
 	bool paused_;
 };

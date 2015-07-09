@@ -216,6 +216,7 @@ OdometryROS::OdometryROS(int argc, char * argv[]) :
 	resetToPoseSrv_ = nh.advertiseService("reset_odom_to_pose", &OdometryROS::resetToPose, this);
 	pauseSrv_ = nh.advertiseService("pause_odom", &OdometryROS::pause, this);
 	resumeSrv_ = nh.advertiseService("resume_odom", &OdometryROS::resume, this);
+	get_odomSrv_ = nh.advertiseService("get_odom", &OdometryROS::get_odom, this);
 }
 
 OdometryROS::~OdometryROS()
@@ -348,6 +349,7 @@ void OdometryROS::processData(const SensorData & data, const std_msgs::Header & 
 
 			//publish the message
 			odomPub_.publish(odom);
+      cur_odom = odom;
 		}
 
 		if(odomLocalMap_.getNumSubscribers() && dynamic_cast<OdometryBOW*>(odometry_))
@@ -479,5 +481,13 @@ bool OdometryROS::resume(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 	}
 	return true;
 }
+
+bool OdometryROS::get_odom(rtabmap_ros::GetOdom::Request& req, 
+                rtabmap_ros::GetOdom::Response& res)
+{
+  res.odom = cur_odom; 
+  return true;
+}//get_odom
+
 
 }

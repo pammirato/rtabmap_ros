@@ -53,6 +53,7 @@ add_message_files(
  add_service_files(
    FILES
    GetMap.srv
+   GetOdom.srv
    ListLabels.srv
    PublishMap.srv
    ResetPose.srv
@@ -66,6 +67,7 @@ generate_messages(
    std_msgs
    geometry_msgs
    sensor_msgs
+   nav_msgs
 )
 
 #add dynamic reconfigure api
