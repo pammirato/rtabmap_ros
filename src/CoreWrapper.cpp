@@ -127,7 +127,7 @@ CoreWrapper::CoreWrapper(bool deleteDbOnStart) :
 	bool subscribeLaserScan = false;
 	bool subscribeDepth = true;
 	bool subscribeStereo = false;
-	int queueSize = 10;
+	int queueSize = 1;
 	bool publishTf = true;
 	double tfDelay = 0.05; // 20 Hz
 	bool stereoApproxSync = false;
@@ -657,40 +657,41 @@ bool CoreWrapper::commonOdomTFUpdate(const ros::Time & stamp)
 
 Transform CoreWrapper::getLocalTransform(const std::string & sensorFrameId, const ros::Time & stamp) const
 {
+  //ROS_INFO("GET LOCAL TRANSFORM: %s", sensorFrameId.c_str());
 	// TF ready?
 	Transform localTransform;
 	try
 	{
 		if(waitForTransform_)
 		{
-      ROS_INFO("wait");
+      //ROS_INFO("wait");
 			if(!tfListener_.waitForTransform(frameId_, sensorFrameId, stamp, ros::Duration(1)))
 			{
 				ROS_ERROR("Could not get transform from %s to %s after 1 second!", frameId_.c_str(), sensorFrameId.c_str());
 				return localTransform;
 			}
 		}
-    ROS_INFO("HERS !");
-    ROS_INFO("FRAME ID: %s    FID: %s",sensorFrameId.c_str(), frameId_.c_str());
+    //ROS_INFO("HERS !");
+    //ROS_INFO("FRAME ID: %s    FID: %s",sensorFrameId.c_str(), frameId_.c_str());
 		tf::StampedTransform tmp;
-    std::string philID = std::string("kinect2_rgb_optical_frame");
-    std::string badID = std::string("camera_depth_frame");
+    //std::string philID = std::string("K1_rgb_optical_frame");
+    //std::string badID = std::string("camera_depth_frame");
 
-    if(sensorFrameId.compare(badID) == 0){
-      ROS_INFO("FIX BAD ID");
-		  tfListener_.lookupTransform(frameId_, philID, stamp, tmp);
-    }
-    else{
-		  tfListener_.lookupTransform(frameId_, sensorFrameId, stamp, tmp);
-    }		
+    //if(sensorFrameId.compare(badID) == 0){
+     // ROS_INFO("FIX BAD ID");
+		  //tfListener_.lookupTransform(frameId_, sensorFrameId, stamp, tmp);
+    //}
+   // else{
+		tfListener_.lookupTransform(frameId_, sensorFrameId, stamp, tmp);
+    //}		
 
 //tfListener_.lookupTransform(frameId_, "kinect2_rgb_optical_frame", stamp, tmp);
-    ROS_INFO("HERS @");
+//    ROS_INFO("HERS @");
 		localTransform = rtabmap_ros::transformFromTF(tmp);
 	}
 	catch(tf::TransformException & ex)
 	{
-		ROS_ERROR("%s",ex.what());
+		ROS_ERROR("CORE WRAPPER: %s",ex.what());
 	}
 	return localTransform;
 }
@@ -703,7 +704,7 @@ void CoreWrapper::commonDepthCallback(
 		const sensor_msgs::LaserScanConstPtr& scanMsg)
 {
 
-	ROS_INFO("PHILIP");
+//	ROS_INFO("PHILIP");
 	if(!(imageMsg->encoding.compare(sensor_msgs::image_encodings::MONO8) ==0 ||
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
@@ -715,6 +716,7 @@ void CoreWrapper::commonDepthCallback(
 		return;
 	}
 
+ // ROS_INFO("DEPTH TRANSFORM, HEADER: %s", depthMsg->header.frame_id.c_str());
 	Transform localTransform = getLocalTransform(depthMsg->header.frame_id, depthMsg->header.stamp);
 	if(localTransform.isNull())
 	{
@@ -729,6 +731,7 @@ void CoreWrapper::commonDepthCallback(
 
 //    scanMsg->header.frame_id = "kinect2_rgb_optical_frame";
 		// make sure the frame of the laser is updated too
+  //  ROS_INFO("Scan TRANSFORM, HEADER: %s", scanMsg->header.frame_id.c_str());
 		if(getLocalTransform(scanMsg->header.frame_id, scanMsg->header.stamp).isNull())
 		//if(getLocalTransform(philID, scanMsg->header.stamp).isNull())
 		{
@@ -803,6 +806,7 @@ void CoreWrapper::commonStereoCallback(
 		return;
 	}
 
+  //ROS_INFO("leftIMage TRANSFORM, HEADER: %s", leftImageMsg->header.frame_id.c_str());
 	Transform localTransform = getLocalTransform(leftImageMsg->header.frame_id, leftImageMsg->header.stamp);
 	if(localTransform.isNull())
 	{
@@ -813,6 +817,7 @@ void CoreWrapper::commonStereoCallback(
 	if(scanMsg.get() != 0)
 	{
 		// make sure the frame of the laser is updated too
+    //ROS_INFO("Scan2 TRANSFORM, HEADER: %s", scanMsg->header.frame_id.c_str());
 		if(getLocalTransform(scanMsg->header.frame_id, scanMsg->header.stamp).isNull())
 		{
 			return;
@@ -2062,6 +2067,7 @@ std::map<int, rtabmap::Transform> CoreWrapper::updateMapCaches(
 
 				if(data.id() > 0)
 				{
+          ROS_INFO("EMPRY TRANSFORM");
 					Transform localTransform = data.getLocalTransform();
 					if(!localTransform.isNull())
 					{

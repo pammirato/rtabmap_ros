@@ -44,17 +44,18 @@
    
   <!-- TF FRAMES -->
   <node pkg="tf" type="static_transform_publisher" name="base_to_camera_tf" 
-    args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /kinect2_link 100" />
+    args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /K1_link 100" />
  
 
 
 
     <!-- Kinect cloud to laser scan -->
     <node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="depthimage_to_laserscan">
-      <remap from="image"     to="/kinect2/$(arg depth_prefix)/image"/>      
-      <remap from="camera_info" to="/kinect2/$(arg depth_prefix)/camera_info"/>
+      <remap from="image"     to="/K1/$(arg depth_prefix)/image"/>      
+      <remap from="camera_info" to="/K1/$(arg depth_prefix)/camera_info"/>
       <remap from="scan" to="/kinect_scan"/>
       <param name="range_max" type="double" value="4"/>
+      <param name="output_frame_id" type="string" value="K1_rgb_optical_frame"/>
     </node>
 
 
@@ -68,20 +69,20 @@
 
 
     <!-- 2D Occupancy Grid Map -->
-    <node pkg="rtabmap_ros" type="grid_map_assembler" name="grid_map_assembler" output="screen">
+    <!-- node pkg="rtabmap_ros" type="grid_map_assembler" name="grid_map_assembler" output="screen">
     
 
       <remap from="rtabmap_ros/MapData" to="/rtabmap/MapData"/>
-    </node>
+    </node -->
 
 
 
   
     <!-- Odometry -->
     <node pkg="rtabmap_ros" type="rgbd_odometry" name="visual_odometry" output="screen">
-      <remap from="rgb/image" to="/kinect2/$(arg rgb_prefix)/image"/>
-      <remap from="depth/image" to="/kinect2/$(arg depth_prefix)/image"/>
-      <remap from="rgb/camera_info" to="/kinect2/$(arg rgb_prefix)/camera_info"/>
+      <remap from="rgb/image" to="/K1/$(arg rgb_prefix)/image"/>
+      <remap from="depth/image" to="/K1/$(arg depth_prefix)/image"/>
+      <remap from="rgb/camera_info" to="/K1/$(arg rgb_prefix)/camera_info"/>
 
       <param name="approx_sync" type="bool" value="true"/>
 	  
@@ -114,10 +115,15 @@
 
       <remap from="scan" to="/kinect_scan"/>
 
+
+       
+      <!-- remap from="odom" to="/RosAria/pose"-->
+
+
 	
-      <remap from="rgb/image" to="/kinect2/$(arg rgb_prefix)/image"/>
-      <remap from="depth/image" to="/kinect2/$(arg depth_prefix)/image"/>
-      <remap from="rgb/camera_info" to="/kinect2/$(arg rgb_prefix)/camera_info"/>
+      <remap from="rgb/image" to="/K1/$(arg rgb_prefix)/image"/>
+      <remap from="depth/image" to="/K1/$(arg depth_prefix)/image"/>
+      <remap from="rgb/camera_info" to="/K1/$(arg rgb_prefix)/camera_info"/>
 
       <param name="approx_sync" type="bool" value="true"/>
 
@@ -138,9 +144,9 @@
       <param name="subscribe_odom_info" type="bool" value="true"/>
       <param name="approx_sync" type="bool" value="true"/>
     
-      <remap from="rgb/image" to="/kinect2/$(arg rgb_prefix)/image"/>
-      <remap from="depth/image" to="/kinect2/$(arg depth_prefix)/image"/>
-      <remap from="rgb/camera_info" to="/kinect2/$(arg rgb_prefix)/camera_info"/>
+      <remap from="rgb/image" to="/K1/$(arg rgb_prefix)/image"/>
+      <remap from="depth/image" to="/K1/$(arg depth_prefix)/image"/>
+      <remap from="rgb/camera_info" to="/K1/$(arg rgb_prefix)/camera_info"/>
     </node>
   
   </group>
@@ -150,9 +156,9 @@
   <!-- sync cloud with odometry and voxelize the point cloud (for fast visualization in rviz) -->
   <node if="$(arg rviz)" pkg="nodelet" type="nodelet" name="standalone_nodelet"  args="manager" output="screen"/>
   <node if="$(arg rviz)" pkg="nodelet" type="nodelet" name="data_odom_sync" args="load rtabmap_ros/data_odom_sync standalone_nodelet">
-    <remap from="rgb/image_in"       to="/kinect2/$(arg rgb_prefix)/image"/>
-    <remap from="depth/image_in"     to="/kinect2/$(arg depth_prefix)/image"/>
-    <remap from="rgb/camera_info_in" to="/kinect2/$(arg rgb_prefix)/camera_info"/>
+    <remap from="rgb/image_in"       to="/K1/$(arg rgb_prefix)/image"/>
+    <remap from="depth/image_in"     to="/K1/$(arg depth_prefix)/image"/>
+    <remap from="rgb/camera_info_in" to="/K1/$(arg rgb_prefix)/camera_info"/>
 
     <remap from="odom_in"             to="rtabmap/odom"/>
 
