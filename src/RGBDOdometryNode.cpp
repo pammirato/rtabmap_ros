@@ -95,8 +95,8 @@ public:
 		{
 			std::string rgbe(image->encoding);
 			std::string depthe(depth->encoding);
-			ROS_INFO("\n%s\n",rgbe.c_str());
-			ROS_INFO("Dhpth ENOCODING: %s" , depthe.c_str());
+			//ROS_INFO("\n%s\n",rgbe.c_str());
+			//ROS_INFO("Dhpth ENOCODING: %s" , depthe.c_str());
 			if(!(image->encoding.compare(sensor_msgs::image_encodings::MONO8) ==0 ||
 				 image->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
 				 image->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
@@ -147,6 +147,14 @@ public:
 				float cy = model.cy();
 				cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "bgr8");
 				cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth);
+
+
+
+        
+
+
+
+
 
 				rtabmap::SensorData data(
 						ptrImage->image,

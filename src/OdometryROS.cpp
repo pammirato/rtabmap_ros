@@ -431,7 +431,7 @@ void OdometryROS::processData(const SensorData & data, const std_msgs::Header & 
 		odomInfoPub_.publish(infoMsg);
 	}
 
-	ROS_INFO("Odom: quality=%d, std dev=%fm, update time=%fs", info.inliers, pose.isNull()?0.0f:std::sqrt(info.variance), (ros::WallTime::now()-time).toSec());
+	//ROS_INFO("Odom: quality=%d, std dev=%fm, update time=%fs", info.inliers, pose.isNull()?0.0f:std::sqrt(info.variance), (ros::WallTime::now()-time).toSec());
 }
 
 bool OdometryROS::isOdometryBOW() const

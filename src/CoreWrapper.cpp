@@ -127,7 +127,7 @@ CoreWrapper::CoreWrapper(bool deleteDbOnStart) :
 	bool subscribeLaserScan = false;
 	bool subscribeDepth = true;
 	bool subscribeStereo = false;
-	int queueSize = 1;
+	int queueSize = 10;
 	bool publishTf = true;
 	double tfDelay = 0.05; // 20 Hz
 	bool stereoApproxSync = false;
@@ -704,7 +704,7 @@ void CoreWrapper::commonDepthCallback(
 		const sensor_msgs::LaserScanConstPtr& scanMsg)
 {
 
-//	ROS_INFO("PHILIP");
+	ROS_ERROR("Common Depth");
 	if(!(imageMsg->encoding.compare(sensor_msgs::image_encodings::MONO8) ==0 ||
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
 			imageMsg->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
@@ -875,11 +875,12 @@ void CoreWrapper::depthCallback(
 		const sensor_msgs::ImageConstPtr& depthMsg,
 		const sensor_msgs::CameraInfoConstPtr& cameraInfoMsg)
 {
+  ROS_ERROR("DEPTH CALL BACK");
 	if(!commonOdomUpdate(odomMsg))
 	{
 		return;
 	}
-
+  ROS_ERROR("DEPTH CALL BACK 2");
 	sensor_msgs::LaserScanConstPtr scanMsg; // Null
 	commonDepthCallback(odomMsg->header.frame_id, imageMsg, depthMsg, cameraInfoMsg, scanMsg);
 }
@@ -890,6 +891,7 @@ void CoreWrapper::depthScanCallback(
 		const sensor_msgs::CameraInfoConstPtr& cameraInfoMsg,
 		const sensor_msgs::LaserScanConstPtr& scanMsg)
 {
+  ROS_ERROR("DEPTH SCAN CALLBACK");
 	if(!commonOdomUpdate(odomMsg))
 	{
     ROS_ERROR("NO COMMON ODOOM UPDATE!!!!");
@@ -904,6 +906,7 @@ void CoreWrapper::stereoCallback(
 	   const sensor_msgs::CameraInfoConstPtr& rightCamInfoMsg,
 	   const nav_msgs::OdometryConstPtr & odomMsg)
 {
+  ROS_ERROR("STEREO CALLBACK");
 	if(!commonOdomUpdate(odomMsg))
 	{
 		return;
@@ -920,6 +923,7 @@ void CoreWrapper::stereoScanCallback(
 	   const sensor_msgs::LaserScanConstPtr& scanMsg,
 	   const nav_msgs::OdometryConstPtr & odomMsg)
 {
+  ROS_ERROR("STEREO SCAN CALLBACK");
 	if(!commonOdomUpdate(odomMsg))
 	{
 		return;
@@ -933,6 +937,7 @@ void CoreWrapper::depthTFCallback(
 		const sensor_msgs::ImageConstPtr& depthMsg,
 		const sensor_msgs::CameraInfoConstPtr& cameraInfoMsg)
 {
+  ROS_ERROR("DEPTH TF CALLBACK");
 	if(!commonOdomTFUpdate(depthMsg->header.stamp))
 	{
 		return;
@@ -946,6 +951,7 @@ void CoreWrapper::depthScanTFCallback(
 		const sensor_msgs::CameraInfoConstPtr& cameraInfoMsg,
 		const sensor_msgs::LaserScanConstPtr& scanMsg)
 {
+  ROS_ERROR("DEPTH SACN TF CALLBACK");
 	if(!commonOdomTFUpdate(depthMsg->header.stamp))
 	{
 		return;
@@ -958,6 +964,7 @@ void CoreWrapper::stereoTFCallback(
 	   const sensor_msgs::CameraInfoConstPtr& leftCamInfoMsg,
 	   const sensor_msgs::CameraInfoConstPtr& rightCamInfoMsg)
 {
+  ROS_ERROR("STEREO TF CALLBACK");
 	if(!commonOdomTFUpdate(leftImageMsg->header.stamp))
 	{
 		return;
@@ -973,6 +980,7 @@ void CoreWrapper::stereoScanTFCallback(
 	   const sensor_msgs::CameraInfoConstPtr& rightCamInfoMsg,
 	   const sensor_msgs::LaserScanConstPtr& scanMsg)
 {
+  ROS_ERROR("STEREO SCAN TF CALLBACK");
 	if(!commonOdomTFUpdate(leftImageMsg->header.stamp))
 	{
 		return;
@@ -996,7 +1004,7 @@ void CoreWrapper::process(
 		const Transform & localTransform,
 		const cv::Mat & scan)
 {
-  ROS_INFO("Processing...");
+  ROS_ERROR("Processing...");
 	UTimer timer;
 	if(rtabmap_.isIDsGenerated() || id > 0)
 	{
@@ -1005,16 +1013,20 @@ void CoreWrapper::process(
 		cv::Mat imageB;
 		if(!depthOrRightImage.empty())
 		{
+    ROS_INFO("Processing3...");
 			if(depthOrRightImage.type() == CV_8UC1)
 			{
+    ROS_INFO("Processing4...");
 				//right image
 				imageB = depthOrRightImage.clone();
 			}
 			else if(depthOrRightImage.type() != CV_16UC1)
 			{
+    ROS_INFO("Processing5...");
 				// depth float
 				if(depthOrRightImage.type() == CV_32FC1)
 				{
+    ROS_INFO("Processing6...");
 					//convert to 16 bits
 					imageB = util3d::cvtDepthFromFloat(depthOrRightImage);
 					static bool shown = false;
@@ -1033,11 +1045,13 @@ void CoreWrapper::process(
 			}
 			else
 			{
+    ROS_INFO("Processing7...");
 				// depth short
 				imageB = depthOrRightImage.clone();
 			}
 		}
 
+    ROS_INFO("Processing8...");
 		SensorData data(scan,
 				image.clone(),
 				imageB,
@@ -1052,6 +1066,7 @@ void CoreWrapper::process(
 				id,
 				rtabmap_ros::timestampFromROS(stamp));
 
+    ROS_INFO("Processing9...");
 		if(rtabmap_.process(data))
 		{
       ROS_INFO("Processingdata...");
@@ -1148,6 +1163,7 @@ void CoreWrapper::process(
 		}
 		else
 		{
+    ROS_INFO("Processing10...");
 			timeRtabmap = timer.ticks();
 		}
 		ROS_INFO("rtabmap: Update rate=%fs, Limit=%fs, RTAB-Map=%fs, Publish=%fs (%d local nodes)",
@@ -2672,7 +2688,7 @@ void CoreWrapper::setupCallbacks(
 				depthScanSync_ = new message_filters::Synchronizer<MyDepthScanSyncPolicy>(MyDepthScanSyncPolicy(queueSize), imageSub_, odomSub_, imageDepthSub_, cameraInfoSub_, scanSub_);
 				depthScanSync_->registerCallback(boost::bind(&CoreWrapper::depthScanCallback, this, _1, _2, _3, _4, _5));
 
-				ROS_INFO("\n%s subscribed to:\n   %s,\n   %s,\n   %s,\n   %s,\n   %s",
+				ROS_INFO("\n%s subbbscribed to:\n   %s,\n   %s,\n   %s,\n   %s,\n   %s",
 						ros::this_node::getName().c_str(),
 						imageSub_.getTopic().c_str(),
 						imageDepthSub_.getTopic().c_str(),
